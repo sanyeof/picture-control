@@ -22,3 +22,9 @@ npm run lint
 
 ### Customize configuration
 See [Configuration Reference](https://cli.vuejs.org/config/).
+
+### 部署
+```
+dpcker build -t 镜像名 .
+docker-compose up -d
+```
