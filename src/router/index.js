@@ -7,6 +7,7 @@ Vue.use(VueRouter)
 const routes = [
   { path: '/', name: 'Home', component: Home },
   { path: '/Cropperjs', name: 'Cropperjs', component: () => import(/* webpackChunkName: "other" */ '../views/Cropperjs.vue') },
+  { path: '/Gradejs', name: 'Gradejs', component: () => import(/* webpackChunkName: "other" */ '../views/Gradejs.vue') },
   // {
   //   path: '/about',
   //   name: 'About',

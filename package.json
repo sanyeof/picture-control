@@ -12,6 +12,7 @@
     "core-js": "^3.6.5",
     "cropperjs": "^1.5.9",
     "element-ui": "^2.4.5",
+    "grade-js": "^1.0.10",
     "vue": "^2.6.11",
     "vue-router": "^3.2.0"
   },

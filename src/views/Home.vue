@@ -14,6 +14,7 @@ export default {
     return {
       list: [
         { name: 'Cropper.js', path: '/Cropperjs' },
+        { name: 'Grade.js', path: '/Gradejs' },
         { name: '持续更新中...', path: '' },
       ]
     }
