@@ -100,7 +100,7 @@ export default {
       // 裁剪框数据，发送给后台可以下载切割的图片
       data: null,
       // 上传新图片相关
-      dialogVisible: true
+      dialogVisible: false
      }
   },
   mounted () {
