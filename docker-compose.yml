@@ -1,0 +1,11 @@
+version: "2"
+services:
+  web:
+    restart: always
+    container_name: picture-control
+    image: sanyecloud.top/picture-control/web:latest
+    ports:
+     - "8888:80"
+#    volumes:
+#     - ./mobile:/usr/share/nginx/html
+#     - ./data:/usr/share/nginx/html/data

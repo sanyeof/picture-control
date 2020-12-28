@@ -2,7 +2,7 @@
   <div class="con">
     <!-- 操作界面 -->
     <div class="cropperjs-con">
-      <img id="image" src="@/assets/images/picture.jpg">
+      <img id="image" :src="imgUrl + imgName">
     </div>
     <!-- 操作栏 -->
     <div class="oper">
@@ -42,6 +42,10 @@
       <div :class="{ 'oper-item': true }">
         <i @click="getData()" class="el-icon-shopping-cart-full" title="获取数据"></i>
       </div>
+      <!-- 下载图片 -->
+      <div :class="{ 'oper-item': true }">
+        <i @click="download()" class="el-icon-download" title="下载图片"></i>
+      </div>
     </div>
     <!-- 预览 -->
     <div id="preview" :class="{ 'show-preview': showPreview }"></div>
@@ -55,6 +59,25 @@
       <div><i @click="move(0, 50)" class="el-icon-bottom"></i></div>
       <div><i class="el-icon-caret-bottom"></i></div>
     </div>
+
+    <el-dialog
+      title="上传图片"
+      :visible.sync="dialogVisible"
+      width="500px">
+      <div class="upload-con">
+        <el-upload
+          action=""
+          :show-file-list="false"
+          :auto-upload="false"
+          :on-change="uploadFile">
+          <span v-if="imgName" class="oper-primary">{{ fileName }}</span>
+          <el-button v-else size="small" icon="el-icon-upload2" type="primary">上传</el-button>
+        </el-upload>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button size="small" type="primary" @click="dialogVisible = false">关闭</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -64,13 +87,21 @@ import 'cropperjs/dist/cropper.css'
 export default {
   data () {
     return {
+      apiUrl: process.env.VUE_APP_API_URL,
+      imgUrl: process.env.VUE_APP_IMG_URL,
+      imgName: 'picture.jpg',
+      fileName: 'picture.jpg',
       // 容器对象
       cropper: null,
       // 是否可以准备好可以操作了
       canOper: false,
       // 是否显示预览
-      showPreview: false
-    }
+      showPreview: false,
+      // 裁剪框数据，发送给后台可以下载切割的图片
+      data: null,
+      // 上传新图片相关
+      dialogVisible: true
+     }
   },
   mounted () {
     this.init()
@@ -133,25 +164,34 @@ export default {
           console.log('zoom')
         },
       })
-      console.log(this.cropper)
     },
     // 替换新图片
     replace () {
-      this.$prompt('请输入要操作图片的url', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消'
-      }).then(({ value }) => {
-        if (this.canOper) {
-          this.cropper.replace(value)
+      this.dialogVisible = true
+    },
+    // 上传
+    uploadFile (file) {
+      const formData = new FormData()
+      formData.append('file', file.raw)
+      this.$axios.upload(formData).then(res => {
+        if (res.success) {
+          this.$message({ showClose: true, message: '上传成功', type: 'success' })
+          this.imgName = res.content
+          this.fileName = file.name
+          if (this.canOper) {
+            this.cropper.replace(this.imgUrl + res.content)
+          } else {
+            this.$message.error('Cropper 还没有准备就绪')
+          }
         } else {
-          this.$message.error('Cropper 还没有准备就绪')
+          this.$message({ showClose: true, message: res.msg, type: 'error' })
         }
-      }).catch(() => {      
       })
     },
     // 裁剪
     crop () {
       if (this.canOper) {
+        this.data = null
         this.cropper.clear()
         this.cropper.crop()
 
@@ -210,7 +250,7 @@ export default {
     // 获取各种数据
     getData () {
       if (this.canOper) {
-        const data1 =  this.cropper.getData()
+        const data1 =  this.cropper.getData(true)
         const data2 =  this.cropper.getContainerData()
         const data3 =  this.cropper.getImageData()
         const data4 =  this.cropper.getCanvasData()
@@ -228,6 +268,31 @@ export default {
         console.log(data5)
 
         alert('数据已经输出在控制台了，请按F12查看')
+      } else {
+        this.$message.error('Cropper 还没有准备就绪')
+      }
+    },
+    // 下载
+    download () {
+      if (this.canOper) {
+        this.data = this.cropper.getData(true)
+        if (this.data.height === 0 &&
+            this.data.rotate === 0 &&
+            this.data.scaleX === 1 &&
+            this.data.scaleY === 1 &&
+            this.data.width === 0 &&
+            this.data.x === 0 &&
+            this.data.y === 0 ) {
+          this.$message.error('还没裁剪')
+          return
+        }
+        this.$axios.download(this.imgName, this.data).then(res => {
+          if (res.success) {
+            window.open(this.apiUrl + '/images/download/' + res.content)
+          } else {
+            this.$message.error('生成图片失败')
+          }
+        })
       } else {
         this.$message.error('Cropper 还没有准备就绪')
       }
@@ -325,5 +390,11 @@ export default {
 }
 .move-img>div:nth-child(4) {
   border-top: 1px solid #eee;
+}
+.upload-con {
+  text-align: center;
+}
+.oper-primary {
+  color: #2196f3;
 }
 </style>
